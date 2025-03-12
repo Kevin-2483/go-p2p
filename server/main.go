@@ -23,15 +23,15 @@ func main() {
 	// 设置路由
 	http.HandleFunc("/ws/client", handlers.HandleWebSocket)
 	http.HandleFunc("/ws/info", handlers.HandleInfoWebSocket)
-	http.HandleFunc("/api/register", handlers.HandleRegister)
+	http.HandleFunc("/api/register", handlers.HandleUserRegister)
 	http.HandleFunc("/api/login", handlers.HandleUserLogin)
 	http.HandleFunc("/api/admin/login", handlers.HandleAdminLogin)
 	http.HandleFunc("/api/logout", handlers.RequireUser(handlers.HandleLogout))
 	http.HandleFunc("/api/admin/logout", handlers.RequireAdmin(handlers.HandleAdminLogout))
 
 	// 管理员管理API
-	http.HandleFunc("/api/admin/register", handlers.RequireAuth(handlers.HandleAdminRegister))
-	http.HandleFunc("/api/admin/list", handlers.RequireAuth(handlers.HandleAdminList))
+	http.HandleFunc("/api/admin/register", handlers.RequireAdmin(handlers.HandleAdminRegister))
+	http.HandleFunc("/api/admin/list", handlers.RequireAdmin(handlers.HandleAdminList))
 	http.HandleFunc("/api/admin/update", handlers.RequireAuth(handlers.HandleAdminUpdate))
 	http.HandleFunc("/api/admin/delete", handlers.RequireAuth(handlers.HandleAdminDelete))
 
@@ -41,13 +41,11 @@ func main() {
 	http.HandleFunc("/api/users/update", handlers.RequireAuth(handlers.HandleUserUpdate))
 	http.HandleFunc("/api/users/delete", handlers.RequireAuth(handlers.HandleUserDelete))
 
-	// 空间管理API
-	http.HandleFunc("/api/spaces", handlers.HandleSpaces)
-	http.HandleFunc("/api/spaces/", handlers.HandleSpaceDetail)
-
-	// TURN服务器管理API
-	http.HandleFunc("/api/turn-servers", handlers.HandleTurnServers)
-	http.HandleFunc("/api/turn-servers/", handlers.HandleTurnServerDetail)
+	// 客户端管理API
+	http.HandleFunc("/api/clients", handlers.RequireUser(handlers.HandleClientCreate))
+	http.HandleFunc("/api/clients/list", handlers.RequireUser(handlers.HandleClientList))
+	http.HandleFunc("/api/clients/update", handlers.RequireUser(handlers.HandleClientUpdate))
+	http.HandleFunc("/api/clients/delete", handlers.RequireUser(handlers.HandleClientDelete))
 
 	// Postman配置文件API
 	http.HandleFunc("/api/postman", handlers.HandlePostmanConfig)

@@ -57,13 +57,6 @@ func HandleAdminList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 验证管理员身份
-	admin := r.Context().Value(AdminKey).(*models.Admin)
-	if admin == nil {
-		http.Error(w, "需要管理员权限", http.StatusForbidden)
-		return
-	}
-
 	// 获取管理员列表
 	admins, err := db.GetAdminList()
 	if err != nil {
