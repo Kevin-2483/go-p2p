@@ -1,0 +1,4 @@
+server/logs/
+server/data.db
+client/logs/
+.devenv/

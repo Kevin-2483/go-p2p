@@ -1,0 +1,338 @@
+{
+	"info": {
+		"name": "WebRTC Server API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "认证管理",
+			"item": [
+				{
+					"name": "用户注册",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"url": {
+							"raw": "{{base_url}}/api/register",
+							"host": ["{{base_url}}"],
+							"path": ["api", "register"]
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"password123\",\n  \"email\": \"test@example.com\"\n}"
+						}
+					}
+				},
+				{
+					"name": "用户登录",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"url": {
+							"raw": "{{base_url}}/api/login",
+							"host": ["{{base_url}}"],
+							"path": ["api", "login"]
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"account\": \"testuser\",\n  \"password\": \"password123\"\n}"
+						}
+					}
+				},
+				{
+					"name": "管理员登录",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"url": {
+							"raw": "{{base_url}}/api/admin/login",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "login"]
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"account\": \"admin\",\n  \"password\": \"admin123\"\n}"
+						}
+					}
+				},
+				{
+					"name": "用户登出",
+					"request": {
+						"method": "POST",
+						"url": {
+							"raw": "{{base_url}}/api/logout",
+							"host": ["{{base_url}}"],
+							"path": ["api", "logout"]
+						}
+					}
+				},
+				{
+					"name": "管理员登出",
+					"request": {
+						"method": "POST",
+						"url": {
+							"raw": "{{base_url}}/api/admin/logout",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "logout"]
+						}
+					}
+				},
+				{
+					"name": "管理员注册",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"url": {
+							"raw": "{{base_url}}/api/admin/register",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "register"]
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}"
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "用户管理",
+			"item": [
+				{
+					"name": "创建用户",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" },
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users"]
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"newuser\",\n  \"password\": \"password123\",\n  \"email\": \"newuser@example.com\"\n}"
+						}
+					}
+				},
+				{
+					"name": "获取用户列表",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+						"url": {
+							"raw": "{{base_url}}/api/users/list",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", "list"]
+						}
+					}
+				},
+				{
+					"name": "更新用户信息",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" },
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/update",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", "update"]
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": \"{{user_id}}\",\n  \"username\": \"updateduser\",\n  \"email\": \"updated@example.com\"\n}"
+						}
+					}
+				},
+				{
+					"name": "删除用户",
+					"request": {
+						"method": "DELETE",
+						"header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+						"url": {
+							"raw": "{{base_url}}/api/users/delete?id={{user_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", "delete"],
+							"query": [{ "key": "id", "value": "{{user_id}}" }]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "管理员管理",
+			"item": [
+				{
+					"name": "获取管理员列表",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+						"url": {
+							"raw": "{{base_url}}/api/admin/list",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "list"]
+						}
+					}
+				},
+				{
+					"name": "更新管理员信息",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" },
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admin/update",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "update"]
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": \"{{admin_id}}\",\n  \"username\": \"updatedadmin\"\n}"
+						}
+					}
+				},
+				{
+					"name": "删除管理员",
+					"request": {
+						"method": "DELETE",
+						"header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+						"url": {
+							"raw": "{{base_url}}/api/admin/delete?id={{admin_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "delete"],
+							"query": [{ "key": "id", "value": "{{admin_id}}" }]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "空间管理",
+			"item": [
+				{
+					"name": "创建空间",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" },
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{base_url}}/api/spaces",
+							"host": ["{{base_url}}"],
+							"path": ["api", "spaces"]
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"测试空间\",\n  \"description\": \"这是一个测试空间\"\n}"
+						}
+					}
+				},
+				{
+					"name": "获取空间列表",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+						"url": {
+							"raw": "{{base_url}}/api/spaces",
+							"host": ["{{base_url}}"],
+							"path": ["api", "spaces"]
+						}
+					}
+				},
+				{
+					"name": "获取空间详情",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+						"url": {
+							"raw": "{{base_url}}/api/spaces/{{space_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "spaces", "{{space_id}}"]
+						}
+					}
+				},
+				{
+					"name": "创建TURN服务器",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" },
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{base_url}}/api/turn-servers",
+							"host": ["{{base_url}}"],
+							"path": ["api", "turn-servers"]
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"url\": \"turn:example.com:3478\",\n  \"username\": \"turnuser\",\n  \"password\": \"turnpass\",\n  \"space_id\": \"{{space_id}}\"\n}"
+						}
+					}
+				},
+				{
+					"name": "获取TURN服务器列表",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+						"url": {
+							"raw": "{{base_url}}/api/turn-servers",
+							"host": ["{{base_url}}"],
+							"path": ["api", "turn-servers"]
+						}
+					}
+				},
+				{
+					"name": "更新TURN服务器",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" },
+							{ "key": "Authorization", "value": "Bearer {{token}}" }
+						],
+						"url": {
+							"raw": "{{base_url}}/api/turn-servers/{{turn_server_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "turn-servers", "{{turn_server_id}}"]
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"url\": \"turn:example.com:3478\",\n  \"username\": \"turnuser\",\n  \"password\": \"turnpass\"\n}"
+						}
+					}
+				},
+				{
+					"name": "删除TURN服务器",
+					"request": {
+						"method": "DELETE",
+						"header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+						"url": {
+							"raw": "{{base_url}}/api/turn-servers/{{turn_server_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "turn-servers", "{{turn_server_id}}"]
+						}
+					}
+				},
+				{
+					"name": "获取TURN服务器列表",
+					"request": {
+						"method": "GET",
+						"header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+						"url": {
+							"raw": "{{base_url}}/api/turn-servers",
+							"host": ["{{base_url}}"],
+							"path": ["api", "turn-servers"]
+						}
+					}
+				}
+			]
+		}
+	]
+}
