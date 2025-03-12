@@ -1,40 +1,19 @@
 package main
 
 import (
-	"fmt"
-	"io"
 	"net/http"
-	"os"
-	"path/filepath"
-	"time"
 
 	"github.com/charmbracelet/log"
 	"server/handlers"
 	"server/db"
+	"server/logger"
 )
 
 func main() {
-	// 创建logs文件夹
-	logsDir := "logs"
-	if err := os.MkdirAll(logsDir, 0755); err != nil {
-		log.Fatal("创建日志目录失败", "error", err)
+	// 初始化日志记录器
+	if err := logger.InitLogger("logs"); err != nil {
+		log.Fatal("初始化日志记录器失败", "error", err)
 	}
-
-	// 创建日志文件
-	timestamp := time.Now().Format("2006-01-02-15-04-05")
-	logFile := filepath.Join(logsDir, fmt.Sprintf("%s.log", timestamp))
-	file, err := os.OpenFile(logFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
-	if err != nil {
-		log.Fatal("创建日志文件失败", "error", err)
-	}
-	defer file.Close()
-
-	// 配置日志记录器，同时输出到文件和控制台
-	log.SetOutput(io.MultiWriter(
-		file,
-		os.Stdout,
-	))
-	log.SetLevel(log.DebugLevel)
 
 	// 初始化数据库
 	if err := db.Init(); err != nil {
@@ -42,7 +21,8 @@ func main() {
 	}
 
 	// 设置路由
-	http.HandleFunc("/ws", handlers.HandleWebSocket)
+	http.HandleFunc("/ws/client", handlers.HandleWebSocket)
+	http.HandleFunc("/ws/info", handlers.HandleInfoWebSocket)
 	http.HandleFunc("/api/register", handlers.HandleRegister)
 	http.HandleFunc("/api/login", handlers.HandleUserLogin)
 	http.HandleFunc("/api/admin/login", handlers.HandleAdminLogin)

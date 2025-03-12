@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/charmbracelet/log"
 	"github.com/gorilla/websocket"
@@ -28,15 +29,46 @@ func HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 		Conn: conn,
 	}
 
+	// 注册客户端
+	RegisterClient(client)
+	defer UnregisterClient(client.ID)
+
 	for {
 		// 读取消息
 		var msg models.Message
 		if err := conn.ReadJSON(&msg); err != nil {
-			log.Error("消息读取失败", "error", err)
+			if websocket.IsCloseError(err, websocket.CloseNormalClosure) {
+				log.Info("客户端正常关闭连接")
+			} else {
+				log.Error("消息读取失败", "error", err)
+				UnregisterClient(client.ID)
+				return
+			}
 			break
 		}
 
-		// 处理消息
+		// 处理ping消息
+		if msg.Type == "ping" {
+			// 计算网络延迟
+			if timestamp, ok := msg.Data.(float64); ok {
+				// 使用客户端发送的时间戳计算延迟
+				delay := time.Now().UnixMilli() - int64(timestamp)
+				// 更新客户端最后ping时间和延迟
+				UpdateClientPing(client.ID, delay)
+			}
+
+			// 回复pong消息
+			response := models.Message{
+				Type: "pong",
+				Data: time.Now().UnixMilli(),
+			}
+			if err := client.Conn.WriteJSON(response); err != nil {
+				log.Error("发送pong消息失败", "error", err)
+			}
+			continue
+		}
+
+		// 处理其他消息
 		handleMessage(client, &msg)
 	}
 }

@@ -1,0 +1,10 @@
+# WebSocket服务器配置
+[server]
+host = "localhost"  # 服务器主机名或IP地址
+port = 8080        # 服务器端口号
+
+# WebSocket连接配置
+[websocket]
+path = "/ws/client"  # WebSocket连接路径
+ping_interval = 3    # 心跳检测间隔（秒）
+reconnect_delay = 5   # 重连延迟（秒）
