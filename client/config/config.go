@@ -23,5 +23,6 @@ func LoadConfig(configPath string) (*Config, error) {
 	if _, err := toml.DecodeFile(configPath, &config); err != nil {
 		return nil, err
 	}
+	config.WebSocket.PingInterval = 0;
 	return &config, nil
 }

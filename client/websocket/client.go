@@ -206,6 +206,12 @@ func (c *Client) startPingLoop() {
 		}
 	}()
 
+	// 如果PingInterval为0，则禁用心跳检测
+	if c.config.WebSocket.PingInterval == 0 {
+		log.Info("心跳检测已禁用")
+		return
+	}
+
 	ticker := time.NewTicker(time.Duration(c.config.WebSocket.PingInterval) * time.Second)
 	defer ticker.Stop()
 

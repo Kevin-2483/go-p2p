@@ -47,6 +47,18 @@ func main() {
 	http.HandleFunc("/api/clients/update", handlers.RequireUser(handlers.HandleClientUpdate))
 	http.HandleFunc("/api/clients/delete", handlers.RequireUser(handlers.HandleClientDelete))
 
+	// 空间管理API
+	http.HandleFunc("/api/spaces", handlers.RequireUser(handlers.HandleSpaceCreate))
+	http.HandleFunc("/api/spaces/list", handlers.RequireUser(handlers.HandleSpaceList))
+	http.HandleFunc("/api/spaces/update", handlers.RequireUser(handlers.HandleSpaceUpdate))
+	http.HandleFunc("/api/spaces/delete", handlers.RequireUser(handlers.HandleSpaceDelete))
+
+	// TURN服务器管理API
+	http.HandleFunc("/api/turns", handlers.RequireUser(handlers.HandleTurnCreate))
+	http.HandleFunc("/api/turns/list", handlers.RequireUser(handlers.HandleTurnList))
+	http.HandleFunc("/api/turns/update", handlers.RequireUser(handlers.HandleTurnUpdate))
+	http.HandleFunc("/api/turns/delete", handlers.RequireUser(handlers.HandleTurnDelete))
+
 	// Postman配置文件API
 	http.HandleFunc("/api/postman", handlers.HandlePostmanConfig)
 

@@ -54,41 +54,49 @@ func GetClientsByOwnerID(ownerID string) ([]*models.Client, error) {
 
 // UpdateClient 更新客户端信息
 func UpdateClient(client *models.Client) error {
-	result, err := db.Exec(`
+	// 检查客户端是否存在
+	existingClient, err := GetClientByID(client.ID)
+	if err != nil {
+		return err
+	}
+	if existingClient == nil {
+		return fmt.Errorf("客户端不存在")
+	}
+
+	// 确保只能更新自己的客户端
+	if existingClient.OwnerID != client.OwnerID {
+		return fmt.Errorf("无权更新此客户端")
+	}
+
+	// 更新数据库
+	_, err = db.Exec(`
 		UPDATE clients
 		SET space_id = ?, public_key = ?
 		WHERE id = ? AND owner_id = ?
 	`, client.SpaceID, client.PublicKey, client.ID, client.OwnerID)
-	if err != nil {
-		return err
-	}
-
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if rowsAffected == 0 {
-		return fmt.Errorf("client not found or not owned by user")
-	}
-	return nil
+	return err
 }
 
 // DeleteClient 删除客户端
 func DeleteClient(id string, ownerID string) error {
-	result, err := db.Exec(`
+	// 检查客户端是否存在
+	client, err := GetClientByID(id)
+	if err != nil {
+		return err
+	}
+	if client == nil {
+		return fmt.Errorf("客户端不存在")
+	}
+
+	// 确保只能删除自己的客户端
+	if client.OwnerID != ownerID {
+		return fmt.Errorf("无权删除此客户端")
+	}
+
+	// 从数据库中删除
+	_, err = db.Exec(`
 		DELETE FROM clients
 		WHERE id = ? AND owner_id = ?
 	`, id, ownerID)
-	if err != nil {
-		return err
-	}
-
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if rowsAffected == 0 {
-		return fmt.Errorf("client not found or not owned by user")
-	}
-	return nil
+	return err
 }
