@@ -3,10 +3,12 @@ package handlers
 import (
 	"net/http"
 	"time"
+	"server/crypto"
+	"server/db"
+	"server/models"
 
 	"github.com/charmbracelet/log"
 	"github.com/gorilla/websocket"
-	"server/models"
 )
 
 var upgrader = websocket.Upgrader{
@@ -24,9 +26,82 @@ func HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 	}
 	defer conn.Close()
 
+	// 等待客户端发送ID
+	var msg models.Message
+	if err := conn.ReadJSON(&msg); err != nil {
+		log.Error("读取客户端ID失败", "error", err)
+		return
+	}
+
+	if msg.Type != "auth" || msg.Data == nil {
+		log.Error("无效的身份验证消息")
+		return
+	}
+
+	// 解析客户端ID
+	clientID, ok := msg.Data.(string)
+	if !ok {
+		log.Error("客户端ID格式错误")
+		return
+	}
+
+	// 查询客户端信息
+	dbClient, err := db.GetClientByID(clientID)
+	if err != nil {
+		log.Error("查询客户端信息失败", "error", err)
+		return
+	}
+	if dbClient == nil {
+		log.Error("客户端不存在")
+		return
+	}
+
+	// 生成随机数并使用客户端公钥加密
+	challenge, err := crypto.GenerateRandomChallenge()
+	if err != nil {
+		log.Error("生成随机挑战失败", "error", err)
+		return
+	}
+
+	encryptedChallenge, err := crypto.EncryptWithPublicKey(challenge, dbClient.PublicKey)
+	if err != nil {
+		log.Error("加密随机挑战失败", "error", err)
+		return
+	}
+
+	// 发送加密的随机挑战
+	response := models.Message{
+		Type: "challenge",
+		Data: encryptedChallenge,
+	}
+	if err := conn.WriteJSON(response); err != nil {
+		log.Error("发送随机挑战失败", "error", err)
+		return
+	}
+
+	// 等待客户端响应
+	if err := conn.ReadJSON(&msg); err != nil {
+		log.Error("读取客户端响应失败", "error", err)
+		return
+	}
+
+	if msg.Type != "challenge_response" || msg.Data == nil {
+		log.Error("无效的挑战响应")
+		return
+	}
+
+	// 验证客户端响应
+	responseData, ok := msg.Data.(string)
+	if !ok || responseData != challenge {
+		log.Error("验证失败")
+		return
+	}
+
 	// 创建新的客户端连接
 	client := &models.Client{
-		Conn: conn,
+		ID:        clientID,
+		PublicKey: dbClient.PublicKey,
+		Conn:      conn,
 	}
 
 	// 注册客户端
@@ -75,15 +150,44 @@ func HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 
 // handleMessage 处理接收到的WebSocket消息
 func handleMessage(client *models.Client, msg *models.Message) {
-	// TODO: 根据消息类型处理不同的信令逻辑
+	// 根据消息类型处理不同的信令逻辑
 	switch msg.Type {
 	case "offer":
 		// 处理offer
+		handleOffer(client, msg)
 	case "answer":
 		// 处理answer
+		handleAnswer(client, msg)
 	case "candidate":
-		// 处理ICE candidate
+		// 处理单个ICE candidate
+		handleICECandidate(client, msg)
+	case "connect":
+		// 处理P2P连接请求
+		HandleP2PConnect(client, msg)
+	case "ice_candidates":
+		// 处理ICE候选列表
+		HandleICECandidates(client, msg)
 	default:
 		log.Warn("未知的消息类型", "type", msg.Type)
+	}
+}
+
+// handleAnswer 处理来自客户端的answer
+func handleAnswer(client *models.Client, msg *models.Message) {
+	// 如果有目标客户端，则转发answer
+	if msg.TargetID != "" {
+		clientsLock.RLock()
+		targetClient, exists := clients[msg.TargetID]
+		clientsLock.RUnlock()
+
+		if exists && targetClient.Conn != nil {
+			// 设置源客户端ID
+			msg.SourceID = client.ID
+
+			// 转发answer给目标客户端
+			if err := targetClient.Conn.WriteJSON(msg); err != nil {
+				log.Error("转发answer失败", "error", err)
+			}
+		}
 	}
 }

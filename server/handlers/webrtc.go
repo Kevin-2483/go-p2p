@@ -1,9 +1,9 @@
 package handlers
 
 import (
-	"log"
 
 	"github.com/pion/webrtc/v3"
+	"github.com/charmbracelet/log"
 	"server/models"
 )
 
@@ -20,7 +20,7 @@ func handleOffer(client *models.Client, msg *models.Message) {
 	// 创建新的PeerConnection
 	peerConnection, err := webrtc.NewPeerConnection(peerConnectionConfig)
 	if err != nil {
-		log.Println("Failed to create peer connection:", err)
+		log.Error("Failed to create peer connection:", err)
 		return
 	}
 
@@ -30,20 +30,20 @@ func handleOffer(client *models.Client, msg *models.Message) {
 	offer.SDP = msg.SDP
 
 	if err := peerConnection.SetRemoteDescription(offer); err != nil {
-		log.Println("Failed to set remote description:", err)
+		log.Error("Failed to set remote description:", err)
 		return
 	}
 
 	// 创建answer
 	answer, err := peerConnection.CreateAnswer(nil)
 	if err != nil {
-		log.Println("Failed to create answer:", err)
+		log.Error("Failed to create answer:", err)
 		return
 	}
 
 	// 设置本地描述
 	if err := peerConnection.SetLocalDescription(answer); err != nil {
-		log.Println("Failed to set local description:", err)
+		log.Error("Failed to set local description:", err)
 		return
 	}
 
@@ -54,13 +54,27 @@ func handleOffer(client *models.Client, msg *models.Message) {
 	}
 
 	if err := client.Conn.WriteJSON(response); err != nil {
-		log.Println("Failed to send answer:", err)
+		log.Error("Failed to send answer:", err)
 		return
 	}
 }
 
 // handleICECandidate 处理ICE候选者
 func handleICECandidate(client *models.Client, msg *models.Message) {
-	// TODO: 处理ICE候选者
-	// 在实际应用中，这里需要将ICE候选者添加到对应的PeerConnection中
+	// 如果有目标客户端，则转发ICE候选
+	if msg.TargetID != "" {
+		clientsLock.RLock()
+		targetClient, exists := clients[msg.TargetID]
+		clientsLock.RUnlock()
+
+		if exists && targetClient.Conn != nil {
+			// 设置源客户端ID
+			msg.SourceID = client.ID
+
+			// 转发ICE候选给目标客户端
+			if err := targetClient.Conn.WriteJSON(msg); err != nil {
+				log.Error("转发ICE候选失败", "error", err)
+			}
+		}
+	}
 }

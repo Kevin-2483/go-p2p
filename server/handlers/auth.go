@@ -127,7 +127,7 @@ func HandleAdminLogin(w http.ResponseWriter, r *http.Request) {
 
 	// 设置Cookie
 	http.SetCookie(w, &http.Cookie{
-		Name:     "admin_session_token",
+		Name:     "session_token",
 		Value:    session.Token,
 		Path:     "/",
 		Expires:  session.ExpiresAt,
@@ -185,7 +185,7 @@ func HandleAdminLogout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 获取管理员会话Cookie
-	cookie, err := r.Cookie("admin_session_token")
+	cookie, err := r.Cookie("session_token")
 	if err == nil {
 		// 删除会话记录
 		if err := db.DeleteSession(cookie.Value); err != nil {
@@ -197,7 +197,7 @@ func HandleAdminLogout(w http.ResponseWriter, r *http.Request) {
 
 	// 删除Cookie
 	http.SetCookie(w, &http.Cookie{
-		Name:     "admin_session_token",
+		Name:     "session_token",
 		Value:    "",
 		Path:     "/",
 		Expires:  time.Now(),

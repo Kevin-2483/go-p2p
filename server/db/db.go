@@ -108,6 +108,25 @@ func Init() error {
 		return err
 	}
 
+	// 创建web_api_keys表
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS web_api_keys (
+			id TEXT PRIMARY KEY,
+			user_id TEXT NOT NULL,
+			key TEXT NOT NULL UNIQUE,
+			name TEXT NOT NULL,
+			description TEXT,
+			used BOOLEAN DEFAULT FALSE,
+			expires_at DATETIME NOT NULL,
+			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+			FOREIGN KEY(user_id) REFERENCES users(id)
+		)
+	`)
+	if err != nil {
+		log.Error("创建web_api_keys表失败", "error", err)
+		return err
+	}
+
 	// 创建sessions表
 	_, err = db.Exec(`
 		CREATE TABLE IF NOT EXISTS sessions (

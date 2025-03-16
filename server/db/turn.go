@@ -123,3 +123,26 @@ func GetTurnByID(id string) (*models.TurnServer, error) {
 
 	return &turn, nil
 }
+
+// GetTurnsBySpaceID 获取指定空间的所有TURN服务器配置
+func GetTurnsBySpaceID(spaceID string) ([]models.TurnServer, error) {
+	rows, err := db.Query(`
+		SELECT id, owner_id, space_id, url, username, password, created_at, updated_at
+		FROM turn_servers
+		WHERE space_id = ?
+	`, spaceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var turns []models.TurnServer
+	for rows.Next() {
+		var turn models.TurnServer
+		if err := rows.Scan(&turn.ID, &turn.OwnerID, &turn.SpaceID, &turn.URL, &turn.Username, &turn.Password, &turn.CreatedAt, &turn.UpdatedAt); err != nil {
+			return nil, err
+		}
+		turns = append(turns, turn)
+	}
+	return turns, nil
+}

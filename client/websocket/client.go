@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"client/config"
+	"client/crypto"
 
 	"github.com/charmbracelet/log"
 	"github.com/gorilla/websocket"
@@ -18,11 +19,11 @@ type Client struct {
 	conn           *websocket.Conn
 	config         *config.Config
 	pingStartTime  time.Time
-	mu             sync.RWMutex       // 单一互斥锁用于保护conn和控制通道
-	writeMu        sync.Mutex         // 写操作的互斥锁
-	done           chan struct{}      // 连接状态通知通道
-	control        chan struct{}      // 控制通道，用于停止心跳等操作
-	isReconnecting atomic.Bool        // 使用原子操作标记重连状态
+	mu             sync.RWMutex  // 单一互斥锁用于保护conn和控制通道
+	writeMu        sync.Mutex    // 写操作的互斥锁
+	done           chan struct{} // 连接状态通知通道
+	control        chan struct{} // 控制通道，用于停止心跳等操作
+	isReconnecting atomic.Bool   // 使用原子操作标记重连状态
 }
 
 // NewClient 创建新的WebSocket客户端
@@ -45,13 +46,13 @@ func (c *Client) Connect() error {
 
 	// 关闭现有资源
 	c.closeResources()
-	
+
 	// 初始化新的控制通道
 	c.mu.Lock()
 	c.control = make(chan struct{})
 	c.done = make(chan struct{})
 	c.mu.Unlock()
-	
+
 	// 构建WebSocket URL
 	u := url.URL{
 		Scheme: "ws",
@@ -73,6 +74,51 @@ func (c *Client) Connect() error {
 	c.mu.Unlock()
 	log.Info("已成功连接到服务器")
 
+	// 发送身份验证消息
+	authMsg := map[string]interface{}{
+		"type": "auth",
+		"data": c.config.Client.ID,
+	}
+	if err := conn.WriteJSON(authMsg); err != nil {
+		log.Error("发送身份验证消息失败", "error", err)
+		return err
+	}
+
+	// 等待服务器的挑战
+	var challengeMsg map[string]interface{}
+	if err := conn.ReadJSON(&challengeMsg); err != nil {
+		log.Error("读取服务器挑战失败", "error", err)
+		return err
+	}
+
+	if challengeMsg["type"] != "challenge" || challengeMsg["data"] == nil {
+		log.Error("无效的服务器挑战")
+		return fmt.Errorf("无效的服务器挑战")
+	}
+
+	// 解密挑战
+	encryptedChallenge, ok := challengeMsg["data"].(string)
+	if !ok {
+		log.Error("服务器挑战格式错误")
+		return fmt.Errorf("服务器挑战格式错误")
+	}
+
+	challenge, err := crypto.DecryptWithPrivateKey(encryptedChallenge)
+	if err != nil {
+		log.Error("解密服务器挑战失败", "error", err)
+		return err
+	}
+
+	// 发送挑战响应
+	responseMsg := map[string]interface{}{
+		"type": "challenge_response",
+		"data": challenge,
+	}
+	if err := conn.WriteJSON(responseMsg); err != nil {
+		log.Error("发送挑战响应失败", "error", err)
+		return err
+	}
+
 	// 启动消息处理和心跳检测
 	go c.handleMessages()
 	go c.startPingLoop()
@@ -84,16 +130,16 @@ func (c *Client) Connect() error {
 func (c *Client) closeResources() {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	
+
 	// 关闭现有连接
 	if c.conn != nil {
 		// 尝试发送关闭消息，忽略错误
-		_ = c.conn.WriteMessage(websocket.CloseMessage, 
+		_ = c.conn.WriteMessage(websocket.CloseMessage,
 			websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 		c.conn.Close()
 		c.conn = nil
 	}
-	
+
 	// 关闭控制通道
 	select {
 	case <-c.control:
@@ -107,7 +153,7 @@ func (c *Client) closeResources() {
 func (c *Client) Close() {
 	// 关闭资源
 	c.closeResources()
-	
+
 	// 通知连接已关闭
 	c.mu.Lock()
 	select {
@@ -140,7 +186,7 @@ func (c *Client) handleMessages() {
 	c.mu.RLock()
 	conn := c.conn
 	c.mu.RUnlock()
-	
+
 	if conn == nil {
 		return
 	}
@@ -161,17 +207,48 @@ func (c *Client) handleMessages() {
 
 		log.Debug("收到消息", "message", msg)
 
-		// 处理pong消息
-		if msgType, ok := msg["type"].(string); ok && msgType == "pong" {
-			if timestamp, ok := msg["data"].(float64); ok {
-				delay := time.Since(c.pingStartTime).Milliseconds()
-				serverTime := time.UnixMilli(int64(timestamp))
-				log.Info("网络延迟", "delay", fmt.Sprintf("%dms", delay), "server_time", serverTime)
-			}
-			continue
-		}
+		// 处理WebSocket消息
+		if msgType, ok := msg["type"].(string); ok {
+			switch msgType {
+			case "pong":
+				if timestamp, ok := msg["data"].(float64); ok {
+					delay := time.Since(c.pingStartTime).Milliseconds()
+					serverTime := time.UnixMilli(int64(timestamp))
+					log.Info("网络延迟", "delay", fmt.Sprintf("%dms", delay), "server_time", serverTime)
+				}
+				continue
 
-		log.Info("收到业务消息", "message", msg)
+			case "connect":
+				// 处理连接请求
+				sourceID, _ := msg["source_id"].(string)
+				targetID, _ := msg["target_id"].(string)
+				spaceID, _ := msg["space_id"].(string)
+
+				log.Info("收到P2P连接请求", "source_id", sourceID, "target_id", targetID, "space_id", spaceID)
+				c.handleP2PConnect(msg)
+				continue
+
+			case "offer":
+				// 处理offer
+				log.Info("收到offer")
+				c.handleOffer(msg)
+				continue
+
+			case "answer":
+				// 处理answer
+				log.Info("收到answer")
+				c.handleAnswer(msg)
+				continue
+
+			case "ice_candidates":
+				// 处理ICE候选
+				log.Info("收到ICE候选")
+				c.handleICECandidates(msg)
+				continue
+			}
+
+			log.Info("收到业务消息", "message", msg)
+		}
 	}
 }
 
@@ -180,10 +257,10 @@ func (c *Client) triggerReconnect() {
 	// 只有当没有重连进行时才触发
 	if c.isReconnecting.CompareAndSwap(false, true) {
 		defer c.isReconnecting.Store(false)
-		
+
 		// 关闭资源
 		c.closeResources()
-		
+
 		// 通知连接已关闭
 		c.mu.Lock()
 		select {
@@ -193,7 +270,7 @@ func (c *Client) triggerReconnect() {
 			close(c.done)
 		}
 		c.mu.Unlock()
-		
+
 		log.Info("连接已断开，等待重连")
 	}
 }
@@ -230,14 +307,14 @@ func (c *Client) startPingLoop() {
 			c.mu.RLock()
 			conn := c.conn
 			c.mu.RUnlock()
-			
+
 			if conn == nil {
 				return
 			}
 
 			// 发送ping消息
 			c.pingStartTime = time.Now()
-			
+
 			// 使用写锁保护写操作
 			c.writeMu.Lock()
 			err := conn.WriteJSON(map[string]interface{}{

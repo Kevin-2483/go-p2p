@@ -8,6 +8,18 @@
 			"name": "认证管理",
 			"item": [
 				{
+					"name": "生成WebAPIKey",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+						"url": {
+							"raw": "{{base_url}}/api/web_api_key/generate",
+							"host": ["{{base_url}}"],
+							"path": ["api", "web_api_key", "generate"]
+						}
+					}
+				},
+				{
 					"name": "用户注册",
 					"request": {
 						"method": "POST",

@@ -77,6 +77,8 @@ func UpdateClient(client *models.Client) error {
 	return err
 }
 
+
+
 // DeleteClient 删除客户端
 func DeleteClient(id string, ownerID string) error {
 	// 检查客户端是否存在
@@ -99,4 +101,27 @@ func DeleteClient(id string, ownerID string) error {
 		WHERE id = ? AND owner_id = ?
 	`, id, ownerID)
 	return err
+}
+
+// GetClientsBySpaceID 获取同一空间内的所有客户端
+func GetClientsBySpaceID(spaceID string) ([]*models.Client, error) {
+	rows, err := db.Query(`
+		SELECT id, owner_id, space_id, public_key
+		FROM clients
+		WHERE space_id = ?
+	`, spaceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var clients []*models.Client
+	for rows.Next() {
+		var client models.Client
+		if err := rows.Scan(&client.ID, &client.OwnerID, &client.SpaceID, &client.PublicKey); err != nil {
+			return nil, err
+		}
+		clients = append(clients, &client)
+	}
+	return clients, nil
 }

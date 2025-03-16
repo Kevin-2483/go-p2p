@@ -3,10 +3,11 @@ package main
 import (
 	"net/http"
 
-	"github.com/charmbracelet/log"
-	"server/handlers"
 	"server/db"
+	"server/handlers"
 	"server/logger"
+
+	"github.com/charmbracelet/log"
 )
 
 func main() {
@@ -42,7 +43,6 @@ func main() {
 	http.HandleFunc("/api/users/delete", handlers.RequireAuth(handlers.HandleUserDelete))
 
 	// 客户端管理API
-	http.HandleFunc("/api/clients", handlers.RequireUser(handlers.HandleClientCreate))
 	http.HandleFunc("/api/clients/list", handlers.RequireUser(handlers.HandleClientList))
 	http.HandleFunc("/api/clients/update", handlers.RequireUser(handlers.HandleClientUpdate))
 	http.HandleFunc("/api/clients/delete", handlers.RequireUser(handlers.HandleClientDelete))
@@ -61,6 +61,13 @@ func main() {
 
 	// Postman配置文件API
 	http.HandleFunc("/api/postman", handlers.HandlePostmanConfig)
+
+	// 测试连接API
+	http.HandleFunc("/api/test/connect", handlers.HandleTestConnect)
+
+	// WebAPIKey管理API
+	http.HandleFunc("/api/web_api_key/generate", handlers.RequireUser(handlers.GenerateWebAPIKey))
+	http.HandleFunc("/api/web_api_keys", handlers.HandleGetWebAPIKey)
 
 	// 启动服务器
 	log.Info("服务器启动", "port", 8080)

@@ -11,9 +11,14 @@ type Config struct {
 		Port int
 	}
 	WebSocket struct {
-		Path          string
-		PingInterval  int `toml:"ping_interval"`
+		Path           string
+		PingInterval   int `toml:"ping_interval"`
 		ReconnectDelay int `toml:"reconnect_delay"`
+	}
+	Client struct {
+		ID         string `toml:"id"`
+		PublicKey  string `toml:"public_key"`
+		PrivateKey string `toml:"private_key"`
 	}
 }
 
@@ -23,6 +28,6 @@ func LoadConfig(configPath string) (*Config, error) {
 	if _, err := toml.DecodeFile(configPath, &config); err != nil {
 		return nil, err
 	}
-	config.WebSocket.PingInterval = 0;
+	config.WebSocket.PingInterval = 0
 	return &config, nil
 }
