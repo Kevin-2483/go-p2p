@@ -83,22 +83,12 @@ func HandleTestConnect(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 获取空间内的TURN服务器配置
-	turnServers, err := db.GetTurnsBySpaceID(req.SpaceID)
-	if err != nil {
-		log.Error("获取TURN服务器配置失败", "error", err)
-		// 继续执行，因为TURN服务器不是必须的
-	}
-
 	// 构建连接请求消息
 	connectMsg := models.Message{
 		Type:     "connect",
 		SourceID: sourceClient.ID,
 		TargetID: targetClient.ID,
 		SpaceID:  req.SpaceID,
-		Data: map[string]interface{}{
-			"turn_servers": turnServers,
-		},
 	}
 
 	// 发送连接请求给源客户端

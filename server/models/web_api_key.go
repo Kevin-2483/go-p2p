@@ -11,6 +11,7 @@ type WebAPIKey struct {
 	ID          string    `json:"id"`
 	UserID      string    `json:"user_id"`
 	Key         string    `json:"key"`
+	SpaceID     string    `json:"space_id"`
 	Name        string    `json:"name"`        // 客户端名称
 	Description string    `json:"description"` // 客户端描述
 	Used        bool      `json:"used"`
@@ -32,12 +33,13 @@ type WebAPIKey struct {
 }
 
 // NewWebAPIKey 创建新的WebAPIKey
-func NewWebAPIKey(userID string, name string, description string) *WebAPIKey {
+func NewWebAPIKey(userID string, name string, description string, spaceID string) *WebAPIKey {
 	now := time.Now()
 	return &WebAPIKey{
 		ID:          uuid.New().String(),
 		UserID:      userID,
 		Key:         uuid.New().String(),
+		SpaceID:     spaceID,
 		Name:        name,
 		Description: description,
 		Used:        false,

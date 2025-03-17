@@ -9,9 +9,9 @@ import (
 // SaveClient 保存客户端信息到数据库
 func SaveClient(client *models.Client) error {
 	_, err := db.Exec(`
-		INSERT INTO clients (id, owner_id, space_id, public_key)
-		VALUES (?, ?, ?, ?)
-	`, client.ID, client.OwnerID, client.SpaceID, client.PublicKey)
+		INSERT INTO clients (id, owner_id, space_id, public_key, name, description)
+		VALUES (?, ?, ?, ?, ?, ?)
+	`, client.ID, client.OwnerID, client.SpaceID, client.PublicKey, client.Name, client.Description)
 	return err
 }
 
@@ -19,10 +19,10 @@ func SaveClient(client *models.Client) error {
 func GetClientByID(id string) (*models.Client, error) {
 	var client models.Client
 	err := db.QueryRow(`
-		SELECT id, owner_id, space_id, public_key
+		SELECT id, owner_id, space_id, public_key, name, description
 		FROM clients
 		WHERE id = ?
-	`, id).Scan(&client.ID, &client.OwnerID, &client.SpaceID, &client.PublicKey)
+	`, id).Scan(&client.ID, &client.OwnerID, &client.SpaceID, &client.PublicKey, &client.Name, &client.Description)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -32,7 +32,7 @@ func GetClientByID(id string) (*models.Client, error) {
 // GetClientsByOwnerID 获取用户的所有客户端
 func GetClientsByOwnerID(ownerID string) ([]*models.Client, error) {
 	rows, err := db.Query(`
-		SELECT id, owner_id, space_id, public_key
+		SELECT id, owner_id, space_id, public_key, name, description
 		FROM clients
 		WHERE owner_id = ?
 	`, ownerID)
@@ -44,7 +44,7 @@ func GetClientsByOwnerID(ownerID string) ([]*models.Client, error) {
 	var clients []*models.Client
 	for rows.Next() {
 		var client models.Client
-		if err := rows.Scan(&client.ID, &client.OwnerID, &client.SpaceID, &client.PublicKey); err != nil {
+		if err := rows.Scan(&client.ID, &client.OwnerID, &client.SpaceID, &client.PublicKey, &client.Name, &client.Description); err != nil {
 			return nil, err
 		}
 		clients = append(clients, &client)
@@ -71,9 +71,9 @@ func UpdateClient(client *models.Client) error {
 	// 更新数据库
 	_, err = db.Exec(`
 		UPDATE clients
-		SET space_id = ?, public_key = ?
+		SET space_id = ?, public_key = ?, name =?, description =?
 		WHERE id = ? AND owner_id = ?
-	`, client.SpaceID, client.PublicKey, client.ID, client.OwnerID)
+	`, client.SpaceID, client.PublicKey, client.Name, client.Description, client.ID, client.OwnerID)
 	return err
 }
 
@@ -106,7 +106,7 @@ func DeleteClient(id string, ownerID string) error {
 // GetClientsBySpaceID 获取同一空间内的所有客户端
 func GetClientsBySpaceID(spaceID string) ([]*models.Client, error) {
 	rows, err := db.Query(`
-		SELECT id, owner_id, space_id, public_key
+		SELECT id, owner_id, space_id, public_key, name, description
 		FROM clients
 		WHERE space_id = ?
 	`, spaceID)
@@ -118,7 +118,7 @@ func GetClientsBySpaceID(spaceID string) ([]*models.Client, error) {
 	var clients []*models.Client
 	for rows.Next() {
 		var client models.Client
-		if err := rows.Scan(&client.ID, &client.OwnerID, &client.SpaceID, &client.PublicKey); err != nil {
+		if err := rows.Scan(&client.ID, &client.OwnerID, &client.SpaceID, &client.PublicKey, &client.Name, &client.Description); err != nil {
 			return nil, err
 		}
 		clients = append(clients, &client)

@@ -11,6 +11,8 @@ type Client struct {
 	OwnerID       string          `json:"owner_id"`
 	SpaceID       string          `json:"space_id"`
 	PublicKey     string          `json:"public_key"`
+	Name          string          `json:"name"`
+	Description   string          `json:"description"`
 	Conn          *websocket.Conn `json:"-"`
 	ConnectedAt   time.Time      `json:"connected_at"`
 	LastPingTime  time.Time      `json:"last_ping_time"`

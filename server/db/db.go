@@ -29,6 +29,8 @@ func Init() error {
 			owner_id TEXT NOT NULL,
 			space_id TEXT NOT NULL,
 			public_key TEXT NOT NULL,
+			name TEXT NOT NULL,
+			description TEXT,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			FOREIGN KEY(owner_id) REFERENCES users(id),
 			FOREIGN KEY(space_id) REFERENCES spaces(id)
@@ -114,12 +116,14 @@ func Init() error {
 			id TEXT PRIMARY KEY,
 			user_id TEXT NOT NULL,
 			key TEXT NOT NULL UNIQUE,
+			space_id TEXT NOT NULL,
 			name TEXT NOT NULL,
 			description TEXT,
 			used BOOLEAN DEFAULT FALSE,
 			expires_at DATETIME NOT NULL,
 			created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 			FOREIGN KEY(user_id) REFERENCES users(id)
+			FOREIGN KEY(space_id) REFERENCES spaces(id)
 		)
 	`)
 	if err != nil {

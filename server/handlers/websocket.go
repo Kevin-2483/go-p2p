@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"net/http"
-	"time"
 	"server/crypto"
 	"server/db"
 	"server/models"
@@ -122,28 +121,7 @@ func HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 
-		// 处理ping消息
-		if msg.Type == "ping" {
-			// 计算网络延迟
-			if timestamp, ok := msg.Data.(float64); ok {
-				// 使用客户端发送的时间戳计算延迟
-				delay := time.Now().UnixMilli() - int64(timestamp)
-				// 更新客户端最后ping时间和延迟
-				UpdateClientPing(client.ID, delay)
-			}
-
-			// 回复pong消息
-			response := models.Message{
-				Type: "pong",
-				Data: time.Now().UnixMilli(),
-			}
-			if err := client.Conn.WriteJSON(response); err != nil {
-				log.Error("发送pong消息失败", "error", err)
-			}
-			continue
-		}
-
-		// 处理其他消息
+		// 处理所有消息
 		handleMessage(client, &msg)
 	}
 }
@@ -152,42 +130,18 @@ func HandleWebSocket(w http.ResponseWriter, r *http.Request) {
 func handleMessage(client *models.Client, msg *models.Message) {
 	// 根据消息类型处理不同的信令逻辑
 	switch msg.Type {
+	case "ping":
+		handlePing(client, msg)
 	case "offer":
 		// 处理offer
 		handleOffer(client, msg)
 	case "answer":
 		// 处理answer
 		handleAnswer(client, msg)
-	case "candidate":
-		// 处理单个ICE candidate
-		handleICECandidate(client, msg)
-	case "connect":
-		// 处理P2P连接请求
-		HandleP2PConnect(client, msg)
 	case "ice_candidates":
 		// 处理ICE候选列表
 		HandleICECandidates(client, msg)
 	default:
 		log.Warn("未知的消息类型", "type", msg.Type)
-	}
-}
-
-// handleAnswer 处理来自客户端的answer
-func handleAnswer(client *models.Client, msg *models.Message) {
-	// 如果有目标客户端，则转发answer
-	if msg.TargetID != "" {
-		clientsLock.RLock()
-		targetClient, exists := clients[msg.TargetID]
-		clientsLock.RUnlock()
-
-		if exists && targetClient.Conn != nil {
-			// 设置源客户端ID
-			msg.SourceID = client.ID
-
-			// 转发answer给目标客户端
-			if err := targetClient.Conn.WriteJSON(msg); err != nil {
-				log.Error("转发answer失败", "error", err)
-			}
-		}
 	}
 }
