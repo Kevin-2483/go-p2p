@@ -142,18 +142,20 @@ func (h *MessageHandler) HandleICECandidates(msg map[string]interface{}) {
 	// 提取消息中的源客户端ID和ICE候选列表
 	sourceID, _ := msg["source_id"].(string)
 	targetID, _ := msg["target_id"].(string)
-	fromClientID, _ := msg["from_client_id"].(string)
+
+	// 获取本地客户端ID
+	localClientID := h.client.config.Client.ID
 
 	// 确定对方ID
 	peerID := ""
-	if fromClientID == targetID {
-		// 如果fromClientID与targetID相同，说明这是目标发来的ICE候选
+	if localClientID == targetID {
+		// 如果本地客户端是目标，那么对方是源
 		peerID = sourceID
-	} else if fromClientID == sourceID {
-		// 如果fromClientID与sourceID相同，说明这是来源发来的ICE候选
+	} else if localClientID == sourceID {
+		// 如果本地客户端是源，那么对方是目标
 		peerID = targetID
 	} else {
-		log.Error("无法确定ICE候选消息的来源")
+		log.Error("无法确定ICE候选消息的来源", "local_id", localClientID, "source_id", sourceID, "target_id", targetID)
 		return
 	}
 

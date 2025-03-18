@@ -27,6 +27,13 @@ type Client struct {
 	webrtcClient   interface{}   // WebRTC客户端引用
 }
 
+// SetWebRTCClient 设置WebRTC客户端
+func (c *Client) SetWebRTCClient(client interface{}) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.webrtcClient = client
+}
+
 // NewClient 创建新的WebSocket客户端
 func NewClient(cfg *config.Config) *Client {
 	return &Client{
@@ -160,6 +167,10 @@ func NewMessageHandler(client *Client) *MessageHandler {
 
 // handleConnect 处理connect消息
 func (h *MessageHandler) handleConnect(msg map[string]interface{}) {
+	if h.client.webrtcClient == nil {
+		log.Error("WebRTC客户端未初始化")
+		return
+	}
 	// 创建WebRTC消息处理器
 	webrtcHandler := webrtc.NewMessageHandler(h.client.webrtcClient.(*webrtc.Client))
 	// 调用WebRTC消息处理器的HandleConnect方法
@@ -168,6 +179,10 @@ func (h *MessageHandler) handleConnect(msg map[string]interface{}) {
 
 // handleOffer 处理offer消息
 func (h *MessageHandler) handleOffer(msg map[string]interface{}) {
+	if h.client.webrtcClient == nil {
+		log.Error("WebRTC客户端未初始化")
+		return
+	}
 	// 创建WebRTC消息处理器
 	webrtcHandler := webrtc.NewMessageHandler(h.client.webrtcClient.(*webrtc.Client))
 	// 调用WebRTC消息处理器的HandleOffer方法
@@ -176,6 +191,10 @@ func (h *MessageHandler) handleOffer(msg map[string]interface{}) {
 
 // handleAnswer 处理answer消息
 func (h *MessageHandler) handleAnswer(msg map[string]interface{}) {
+	if h.client.webrtcClient == nil {
+		log.Error("WebRTC客户端未初始化")
+		return
+	}
 	// 创建WebRTC消息处理器
 	webrtcHandler := webrtc.NewMessageHandler(h.client.webrtcClient.(*webrtc.Client))
 	// 调用WebRTC消息处理器的HandleAnswer方法
@@ -184,6 +203,10 @@ func (h *MessageHandler) handleAnswer(msg map[string]interface{}) {
 
 // handleICECandidates 处理ice_candidates消息
 func (h *MessageHandler) handleICECandidates(msg map[string]interface{}) {
+	if h.client.webrtcClient == nil {
+		log.Error("WebRTC客户端未初始化")
+		return
+	}
 	// 创建WebRTC消息处理器
 	webrtcHandler := webrtc.NewMessageHandler(h.client.webrtcClient.(*webrtc.Client))
 	// 调用WebRTC消息处理器的HandleICECandidates方法
@@ -268,6 +291,23 @@ func (c *Client) triggerReconnect() {
 
 		log.Info("连接已断开，等待重连")
 	}
+}
+
+// SendJSON 发送JSON消息
+func (c *Client) SendJSON(msg map[string]interface{}) error {
+	c.mu.RLock()
+	conn := c.conn
+	c.mu.RUnlock()
+
+	if conn == nil {
+		return fmt.Errorf("连接未建立")
+	}
+
+	// 使用写锁保护写操作
+	c.writeMu.Lock()
+	defer c.writeMu.Unlock()
+
+	return conn.WriteJSON(msg)
 }
 
 // startPingLoop 启动心跳检测循环

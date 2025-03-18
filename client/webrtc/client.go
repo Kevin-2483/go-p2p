@@ -52,6 +52,13 @@ func (c *Client) GetPeerConnection(targetID string) (*webrtc.PeerConnection, err
 		return nil, err
 	}
 
+	// 创建数据通道 - 这是必要的，以确保ICE信息正确交换
+	_, err = pc.CreateDataChannel("data", nil)
+	if err != nil {
+		log.Error("创建数据通道失败", "error", err)
+		return nil, err
+	}
+
 	// 设置ICE候选收集处理
 	pc.OnICECandidate(func(candidate *webrtc.ICECandidate) {
 		if candidate == nil {
@@ -106,6 +113,7 @@ func (c *Client) sendICECandidates(targetID string, candidates []ICECandidate) {
 	msg := map[string]interface{}{
 		"type":           "ice_candidates",
 		"target_id":      targetID,
+		"source_id":      c.config.Client.ID,
 		"ice_candidates": candidates,
 	}
 

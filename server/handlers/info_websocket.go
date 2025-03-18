@@ -58,7 +58,6 @@ func HandleInfoWebSocket(w http.ResponseWriter, r *http.Request) {
 // RegisterClient 注册新的客户端连接
 func RegisterClient(client *models.Client) {
 	// 设置客户端ID和连接时间
-	client.ID = uuid.New().String()
 	client.ConnectedAt = time.Now()
 	client.LastPingTime = time.Now()
 

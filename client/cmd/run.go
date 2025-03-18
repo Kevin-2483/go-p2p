@@ -9,6 +9,7 @@ import (
 
 	"client/config"
 	"client/logger"
+	"client/webrtc"
 	"client/websocket"
 
 	"github.com/charmbracelet/log"
@@ -35,7 +36,13 @@ var runCmd = &cobra.Command{
 		}
 
 		// 创建WebSocket客户端
-		client := websocket.NewClient(cfg)
+		wsClient := websocket.NewClient(cfg)
+
+		// 创建WebRTC客户端
+		webrtcClient := webrtc.NewClient(cfg, wsClient)
+
+		// 设置WebRTC客户端到WebSocket客户端
+		wsClient.SetWebRTCClient(webrtcClient)
 
 		// 设置中断信号处理
 		interrupt := make(chan os.Signal, 1)
@@ -54,7 +61,7 @@ var runCmd = &cobra.Command{
 					return
 				default:
 					// 连接到服务器
-					if err := client.Connect(); err != nil {
+					if err := wsClient.Connect(); err != nil {
 						log.Error("连接失败", "error", err)
 						select {
 						case <-ctx.Done():
@@ -64,7 +71,7 @@ var runCmd = &cobra.Command{
 						}
 					}
 					// 连接成功后等待连接关闭
-					<-client.Done()
+					<-wsClient.Done()
 					log.Info("连接已关闭，准备重连")
 					// 添加小延迟，避免立即重连
 					time.Sleep(time.Second)
@@ -76,14 +83,17 @@ var runCmd = &cobra.Command{
 		sig := <-interrupt
 		log.Info("收到中断信号，正在关闭连接...", "signal", sig)
 		cancel() // 取消context，停止重连
-		
+
 		// 设置一个超时，确保有足够时间干净地关闭
 		shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer shutdownCancel()
-		
+
 		// 关闭客户端连接
-		client.Close()
-		
+		wsClient.Close()
+
+		// 关闭WebRTC客户端
+		webrtcClient.Close()
+
 		// 等待一会儿，确保资源清理完成
 		select {
 		case <-shutdownCtx.Done():
