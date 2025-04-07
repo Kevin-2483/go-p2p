@@ -5,16 +5,18 @@ import (
 	"sync"
 	"time"
 
-	"github.com/charmbracelet/log"
-	"github.com/gorilla/websocket"
-	"github.com/google/uuid"
+	"server/db"
 	"server/models"
+
+	"github.com/charmbracelet/log"
+	"github.com/google/uuid"
+	"github.com/gorilla/websocket"
 )
 
 var (
 	// 全局客户端连接管理器
-	clients    = make(map[string]*models.Client)
-	monitors   = make(map[string]*websocket.Conn)
+	clients     = make(map[string]*models.Client)
+	monitors    = make(map[string]*websocket.Conn)
 	clientsLock sync.RWMutex
 )
 
@@ -29,7 +31,7 @@ func HandleInfoWebSocket(w http.ResponseWriter, r *http.Request) {
 
 	// 为监控连接生成唯一ID
 	monitorID := uuid.New().String()
-	
+
 	// 注册监控连接
 	clientsLock.Lock()
 	monitors[monitorID] = conn
@@ -57,6 +59,20 @@ func HandleInfoWebSocket(w http.ResponseWriter, r *http.Request) {
 
 // RegisterClient 注册新的客户端连接
 func RegisterClient(client *models.Client) {
+	// 从数据库获取完整的客户端信息
+	dbClient, err := db.GetClientByID(client.ID)
+	if err != nil {
+		log.Error("获取客户端信息失败", "error", err)
+		return
+	}
+	if dbClient != nil {
+		// 更新客户端信息
+		client.OwnerID = dbClient.OwnerID
+		client.SpaceID = dbClient.SpaceID
+		client.Name = dbClient.Name
+		client.Description = dbClient.Description
+	}
+
 	// 设置客户端ID和连接时间
 	client.ConnectedAt = time.Now()
 	client.LastPingTime = time.Now()

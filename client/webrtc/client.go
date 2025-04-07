@@ -146,6 +146,19 @@ func (c *Client) SendJSON(msg map[string]interface{}) {
 	}
 }
 
+// GetPeerConnections 获取所有PeerConnection
+func (c *Client) GetPeerConnections() map[string]*webrtc.PeerConnection {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
+	// 创建一个新的map来存储PeerConnection的副本
+	pcs := make(map[string]*webrtc.PeerConnection)
+	for id, pc := range c.peerConnections {
+		pcs[id] = pc
+	}
+	return pcs
+}
+
 // Close 关闭所有PeerConnection
 func (c *Client) Close() {
 	c.mu.Lock()

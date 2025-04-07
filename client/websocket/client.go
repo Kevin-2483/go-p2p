@@ -347,6 +347,16 @@ func (c *Client) startPingLoop() {
 				return
 			}
 
+			// 获取WebRTC连接状态
+			webrtcStatus := make(map[string]string)
+			if c.webrtcClient != nil {
+				if client, ok := c.webrtcClient.(*webrtc.Client); ok {
+					for id, pc := range client.GetPeerConnections() {
+						webrtcStatus[id] = pc.ConnectionState().String()
+					}
+				}
+			}
+
 			// 发送ping消息
 			c.pingStartTime = time.Now()
 
@@ -354,7 +364,10 @@ func (c *Client) startPingLoop() {
 			c.writeMu.Lock()
 			err := conn.WriteJSON(map[string]interface{}{
 				"type": "ping",
-				"data": c.pingStartTime.UnixMilli(),
+				"data": map[string]interface{}{
+					"timestamp":     c.pingStartTime.UnixMilli(),
+					"webrtc_status": webrtcStatus,
+				},
 			})
 			c.writeMu.Unlock()
 
