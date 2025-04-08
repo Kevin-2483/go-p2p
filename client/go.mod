@@ -9,6 +9,8 @@ require (
 	github.com/spf13/cobra v1.9.1
 )
 
+require github.com/gordonklaus/portaudio v0.0.0-20250206071425-98a94950218b // indirect
+
 require (
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/charmbracelet/lipgloss v1.0.0 // indirect
@@ -47,5 +49,6 @@ require (
 	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394 // indirect
 	golang.org/x/net v0.37.0 // indirect
 	golang.org/x/sys v0.31.0 // indirect
+	gopkg.in/hraban/opus.v2 v2.0.0-20230925203106-0188a62cb302
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

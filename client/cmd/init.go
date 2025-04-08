@@ -76,6 +76,19 @@ port = 8080        # 服务器端口号
 path = "/ws/client"  # WebSocket连接路径
 ping_interval = 3     # 心跳检测间隔（秒）
 reconnect_delay = 5   # 重连延迟（秒）
+
+# 音频配置
+[audio]
+enabled = true
+input_device = ""  # 留空使用系统默认设备
+output_device = "" # 留空使用系统默认设备
+capture_system = false        # 是否捕获系统音频输出
+mix_with_mic = false          # 是否将系统音频与麦克风混合
+sample_rate = 48000           # 采样率(Hz)
+channels = 1                  # 通道数，1=单声道，2=立体声
+frame_size = 960              # 帧大小，20ms@48kHz=960
+bitrate_kbps = 64             # 比特率(kbps)
+opus_complexity = 10          # Opus编码复杂度(0-10)
 `
 
 	// 检查文件是否已存在

@@ -1,0 +1,29 @@
+# 服务器配置
+[Server]
+Host = "localhost"
+Port = 8080
+
+# WebSocket配置
+[WebSocket]
+Path = "/ws"
+ping_interval = 30
+reconnect_delay = 5
+
+# 客户端配置
+[Client]
+id = "client1"
+public_key = "your_public_key"
+private_key = "your_private_key"
+
+# 音频配置
+[Audio]
+enabled = true                # 是否启用音频
+input_device = ""             # 输入设备名称，空字符串表示使用系统默认设备
+output_device = ""            # 输出设备名称，空字符串表示使用系统默认设备
+capture_system = false        # 是否捕获系统音频输出，可用于分享系统声音
+mix_with_mic = false          # 是否将系统音频与麦克风混合
+sample_rate = 48000           # 采样率(Hz)，推荐使用48000
+channels = 2                  # 通道数，1=单声道，2=立体声
+frame_size = 960              # 帧大小，20ms@48kHz=960，10ms@48kHz=480
+bitrate_kbps = 64             # 比特率(kbps)，更高的值提供更好的音质，但需要更多带宽
+opus_complexity = 10          # Opus编码复杂度(0-10)，更高的值提供更好的音质，但需要更多CPU 

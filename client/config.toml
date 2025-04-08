@@ -11,3 +11,15 @@
   id = "4e240cf4-e272-46f6-855f-b70192aa5cea"
   private_key = "-----BEGIN RSA PRIVATE KEY-----\nMIIEpAIBAAKCAQEAxVP98zX9+phSGaZ8fdNDuRy6h8VmBm65nUS/O9D7rV6QpB3x\nOXyUXjBJsY085NTULkF7pZ7pKkQ+lnAWXkGWPbn5xIqXKYRvkl+cnhmVgsKybkee\n0n/K9UTx/9k0OMaFyrVkuoH3U4K5NsL39f9hJJSBHW9l2xH4cRBnnr3kmPauNVF4\nL4UG/SSaxJaNqP09ywjJ3tAas7O1r//m0rQfWk44CuJKK2iSWUXsnbVAjaRqyPD1\nvbcp9VHId8mRKf7bhRTH8Ra1cBOb6GhpIu+aENMhnBAqj9qOTC8X2IzDCK2dDL7y\nPGDNH2dnJZjbx3R4yfwks5P4CzdKF5xWYZWg7QIDAQABAoIBAQDEntqOOyBlUN2N\nvXySi64Rh3S90I3GnxHIiTXbznLY3z9UqJkyZNYZvBfSGR+yC/eYV5ty/hLrELEk\niW9gYA3qV6NumYHh1pqtySNvzaJSdtoAVNEGglujZR2Vh8InSHkL8Q77YIEm7zzK\nOh+FOQB8yJSW1ecyEIfzcRsu65waZQJMryUl+bM1ZANKezIlvQd7Htm6wJegRxlQ\nB2bvNrzm4mu5lEIdFu/mbtynCigX5Xo2UZ9I9ptagh5vKkavUnNiq5c54wTlc9Bt\n4xOzqMcUc5McVe9QEVBcAr10LCgnxURhLU3cmSHVOusMY9uZzvh8yxOvhy0yoGH0\nwXraJvhBAoGBAOYTm2dTy1KRQNWSWpQSKCNm3hB0Sgs82kBxYkAdXaM2hkKKsgTP\nxpM1D8SKMeq0Uwh7IGIAhn/+lyFNGIEg+fiD9XwEJFdkvT50/TAdT1vcol1jUIo1\naG/G4bg9SWyT7nUSH54nr2/djzLrDey44Ia63nxDB+kdA+ahr9QBtA3VAoGBANuP\nxzq23Sml858A1FQ4vev7mM8w0v9pTlqBC6hMLK/RZVS9PhhNGamIlyWlY93zq+bv\nQE5DGSwsonQau8P35BhSvOwb4wc9hYatZrdQVAvQ51uPK5NglRoR6Mw1ntG/hBPT\nwh7YIQLg3s/9nFT4EMvidUYMAUtdo6uCpLMg0Bq5AoGANxMqeCmO2kz7ACTwmdFe\n2lqdfcLYlqgSdqqtojtlVtSOfw9EXfJ+zm49QAb0vAI+fiE7Nzp499qxwr75xq9m\nJx8vfGhhaqoqwvCuSv45KPw/wassdGkkft1U2w2QrfUbd9rGxs0pKdYXmVC7HJeE\n57uD1qsVEbBoZqT9ufpOZ6ECgYAVrdmnI30s6pTmg0dz1XJzRZFuC80ZqQUyjIFh\nKbxT0+IkftcNwTcidTkvX2g/9xpnIAKCd7+ZjAKyYh1eGTDtceXzjkFZaqqvhJma\nyhSyYfsmIDnWQHgYbeJFn5nB7h4Vcxg8wWxpA1kcwlbYUPIfn4mi0/agwWsyuSCY\nC0phCQKBgQDGhlABiGZjBJ8WYJf8oY12LaKyMIJOqUeEDGu9/VWRuEg7Oc8lNJQR\ne0/kx9KKVs8pmdtwPyTg7k49Rz7xIXQXIiPcCEzgLWL24ZlhGpq9VPoGFv2tPX08\no7sh3s+9LByDvxADF5Lv+K19I0Q2n4KqmHm4Z0v20SI6+uWITNUYRQ==\n-----END RSA PRIVATE KEY-----\n"
   public_key = "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxVP98zX9+phSGaZ8fdND\nuRy6h8VmBm65nUS/O9D7rV6QpB3xOXyUXjBJsY085NTULkF7pZ7pKkQ+lnAWXkGW\nPbn5xIqXKYRvkl+cnhmVgsKybkee0n/K9UTx/9k0OMaFyrVkuoH3U4K5NsL39f9h\nJJSBHW9l2xH4cRBnnr3kmPauNVF4L4UG/SSaxJaNqP09ywjJ3tAas7O1r//m0rQf\nWk44CuJKK2iSWUXsnbVAjaRqyPD1vbcp9VHId8mRKf7bhRTH8Ra1cBOb6GhpIu+a\nENMhnBAqj9qOTC8X2IzDCK2dDL7yPGDNH2dnJZjbx3R4yfwks5P4CzdKF5xWYZWg\n7QIDAQAB\n-----END PUBLIC KEY-----\n"
+
+[Audio]
+enabled = true
+input_device = "MacBook Air Microphone"  # 留空使用系统默认设备
+output_device = "MacBook Air Speakers" # 留空使用系统默认设备
+capture_system = false        # 是否捕获系统音频输出
+mix_with_mic = false          # 是否将系统音频与麦克风混合
+sample_rate = 48000           # 采样率(Hz)
+channels = 1                  # 通道数，1=单声道，2=立体声
+frame_size = 960              # 帧大小，20ms@48kHz=960
+bitrate_kbps = 64             # 比特率(kbps)
+opus_complexity = 10          # Opus编码复杂度(0-10)

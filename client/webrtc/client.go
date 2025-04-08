@@ -3,6 +3,7 @@ package webrtc
 import (
 	"sync"
 
+	"client/audio"
 	"client/config"
 
 	"github.com/charmbracelet/log"
@@ -14,15 +15,33 @@ type Client struct {
 	config          *config.Config
 	websocketClient interface{} // 使用interface{}避免循环导入
 	peerConnections map[string]*webrtc.PeerConnection
+	audioManager    audio.AudioManager
 	mu              sync.RWMutex
 }
 
 // NewClient 创建新的WebRTC客户端
 func NewClient(cfg *config.Config, wsClient interface{}) *Client {
+	// 创建音频管理器
+	var audioManager audio.AudioManager
+	if cfg.Audio.Enabled {
+		var err error
+		audioManager, err = audio.NewManager(cfg)
+		if err != nil {
+			log.Error("创建音频管理器失败", "error", err)
+		} else {
+			// 启动音频系统
+			if err := audioManager.Start(); err != nil {
+				log.Error("启动音频系统失败", "error", err)
+				audioManager = nil
+			}
+		}
+	}
+
 	return &Client{
 		config:          cfg,
 		websocketClient: wsClient,
 		peerConnections: make(map[string]*webrtc.PeerConnection),
+		audioManager:    audioManager,
 	}
 }
 
@@ -58,6 +77,24 @@ func (c *Client) GetPeerConnection(targetID string) (*webrtc.PeerConnection, err
 		log.Error("创建数据通道失败", "error", err)
 		return nil, err
 	}
+
+	// 如果音频管理器可用，添加音频轨道
+	if c.audioManager != nil {
+		_, err = c.audioManager.AddTrack(pc)
+		if err != nil {
+			log.Error("添加音频轨道失败", "error", err)
+		}
+	}
+
+	// 设置轨道处理
+	pc.OnTrack(func(track *webrtc.TrackRemote, receiver *webrtc.RTPReceiver) {
+		log.Info("收到媒体轨道", "kind", track.Kind().String(), "id", track.ID())
+
+		// 如果是音频轨道并且音频管理器可用
+		if track.Kind() == webrtc.RTPCodecTypeAudio && c.audioManager != nil {
+			c.audioManager.OnTrack(track)
+		}
+	})
 
 	// 设置ICE候选收集处理
 	pc.OnICECandidate(func(candidate *webrtc.ICECandidate) {
@@ -170,5 +207,10 @@ func (c *Client) Close() {
 			pc.Close()
 		}
 		delete(c.peerConnections, id)
+	}
+
+	// 关闭音频系统
+	if c.audioManager != nil {
+		c.audioManager.Stop()
 	}
 }
