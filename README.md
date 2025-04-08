@@ -22,6 +22,7 @@ PortAudio是一个跨平台的音频I/O库，需要为各平台安装：
 
 ```bash
 brew install portaudio
+brew install libogg
 ```
 
 #### Linux (Ubuntu/Debian)
@@ -44,7 +45,7 @@ Opus是一个高质量的音频编解码器：
 #### macOS
 
 ```bash
-brew install opus
+brew install opus opusfile
 ```
 
 #### Linux (Ubuntu/Debian)
@@ -68,7 +69,7 @@ go mod download
 
 ## 配置
 
-配置文件采用TOML格式，请参考`example-config.toml`了解详细设置。
+配置文件采用TOML格式，请参考 `example-config.toml`了解详细设置。
 
 主要音频配置项：
 
@@ -86,7 +87,7 @@ opus_complexity = 10          # Opus编码复杂度
 
 ## 使用方法
 
-1. 复制`example-config.toml`到`config.toml`并按需修改
+1. 复制 `example-config.toml`到 `config.toml`并按需修改
 2. 运行客户端：
    ```bash
    go run main.go
@@ -98,4 +99,4 @@ opus_complexity = 10          # Opus编码复杂度
 
 ```bash
 go run tools/list_devices.go
-``` 
+```
